@@ -1,0 +1,139 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  address   String?
+  imageUrl  String?  // URL of the client's profile picture
+  carts     Cart[]
+  orders    Order[]
+  dishRatings DishRating[] // Ratings given by the client for dishes
+  deliveryBoyRatings DeliveryBoyRating[] // Ratings given by the client for delivery boys
+}
+
+model Chef {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  imageUrl  String?  // URL of the chef's profile picture
+  dishes    Dish[]   // A chef can have multiple dishes
+  orders    Order[]  // A chef can be associated with multiple orders
+  notifications Notification[]
+}
+
+model DeliveryBoy {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  bio       String?
+  phone     String?
+  imageUrl  String?  // URL of the delivery boy's profile picture
+  orders    Order[]  // A delivery boy can be associated with multiple orders
+  ratings   DeliveryBoyRating[] // Ratings received by the delivery boy
+}
+
+model Dish {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  imageUrl    String?  // URL of the dish's image
+  chefId      Int      // Foreign key linking this dish to the Chef who posted it
+  chef        Chef     @relation(fields: [chefId], references: [id]) // Relation to Chef
+  cartItems   CartItem[] // A dish can be part of multiple cart items
+  ratings     DishRating[] // Ratings received for this dish
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  clientId  Int      // Foreign key linking this cart to the Client who owns it
+  client    Client   @relation(fields: [clientId], references: [id])
+  items     CartItem[] // A cart can have multiple items
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  quantity  Int
+  cartId    Int      // Foreign key linking this cart item to the Cart it belongs to
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  dishId    Int      // Foreign key linking this cart item to the Dish
+  dish      Dish     @relation(fields: [dishId], references: [id])
+   specialRequest String?
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED_AND_IN_PROGRESS
+  COMPLETED_AND_IN_ROUTE
+  REJECTED
+}
+
+model Order {
+  id              Int          @id @default(autoincrement())
+  totalAmount     Float
+  status          OrderStatus  // Use enum for order status
+  clientId        Int          // Foreign key linking this order to the Client who placed it
+  chefId          Int          // Foreign key linking this order to the Chef who prepares the food
+  deliveryBoyId   Int?         // Foreign key linking this order to the DeliveryBoy who will deliver the food (optional)
+  client          Client       @relation(fields: [clientId], references: [id])
+  chef            Chef         @relation(fields: [chefId], references: [id])
+  deliveryBoy     DeliveryBoy? @relation(fields: [deliveryBoyId], references: [id])
+  notification    Notification?
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique // Make the orderId field unique to establish a one-to-one relation
+  order     Order    @relation(fields: [orderId], references: [id])
+  chefId    Int      // Chef who receives this notification
+  chef      Chef     @relation(fields: [chefId], references: [id])
+  message   String   // Notification message
+  status    Boolean  @default(false) // False for new notifications, true once viewed
+  createdAt DateTime @default(now())
+}
+
+
+
+model DishRating {
+  id        Int      @id @default(autoincrement())
+  clientId  Int      // Foreign key linking this rating to the Client who gave it
+  dishId    Int      // Foreign key linking this rating to the Dish being rated
+  rating    Int      // The rating value (e.g., from 1 to 5)
+  comment   String?  // Optional comment about the dish
+  client    Client   @relation(fields: [clientId], references: [id])
+  dish      Dish     @relation(fields: [dishId], references: [id])
+}
+
+model DeliveryBoyRating {
+  id             Int      @id @default(autoincrement())
+  clientId       Int      // Foreign key linking this rating to the Client who gave it
+  deliveryBoyId  Int      // Foreign key linking this rating to the DeliveryBoy being rated
+  rating         Int      // The rating value (e.g., from 1 to 5)
+  comment        String?  // Optional comment about the delivery service
+  client         Client    @relation(fields: [clientId], references: [id])
+  deliveryBoy    DeliveryBoy @relation(fields: [deliveryBoyId], references: [id])
+}
+
+model Admin {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  password    String
+}
