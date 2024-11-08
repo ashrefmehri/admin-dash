@@ -19,6 +19,10 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from '../../AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
+
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -27,6 +31,16 @@ const formSchema = z.object({
 
 export default function SignInCard ()  {
 
+  const { login, loading, error,user } = useAuth();
+
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    if (user) {
+        navigate('/dashboard');
+    }
+}, [user, navigate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,8 +50,9 @@ export default function SignInCard ()  {
     },
   });
 
-const onSubmit =(values:z.infer<typeof formSchema>)=>{
-console.log(values);
+const onSubmit = async (values:z.infer<typeof formSchema>)=>{
+  const { email, password } = values
+  await login(email,password)
 
 
 }
@@ -90,14 +105,15 @@ console.log(values);
                 </FormItem>
               )}
             />
-            <Button  disabled={false} size="lg" className="bg-orange-500 hover:bg-orange-500/70 w-full">
-              Login
+            <Button  disabled={loading} size="lg" className="bg-orange-500 hover:bg-orange-500/70 w-full">
+            {loading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </Form>
       </CardContent>
       <div className="px-7">
 
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
 
       </div>

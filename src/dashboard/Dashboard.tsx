@@ -1,7 +1,15 @@
-
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
+ 
 function Dashboard() {
   return (
-    <div>Dashboard</div>
+    <SidebarProvider>
+    <AppSidebar />
+    <main>
+      <SidebarTrigger />
+      
+    </main>
+  </SidebarProvider>
   )
 }
 

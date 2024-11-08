@@ -5,6 +5,7 @@ const {
     registerDeliveryBoy,
     registerAdmin,
     login,
+    loginAdmin
 } = require('../Controllers/authController');
 
 const router = express.Router();

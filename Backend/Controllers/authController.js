@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const { log } = require('console');
 
 const prisma = new PrismaClient();
 
@@ -178,7 +179,8 @@ const registerAdmin = async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////
 const login = async (req, res) => {
     const { email, password } = req.body;
-
+      console.log(email,password);
+      
     try {
         // Check for Client
         let user = await prisma.client.findUnique({ where: { email } });
@@ -212,17 +214,20 @@ const login = async (req, res) => {
             token, 
             userType, 
             user: {
-                name: user.name,
-                imageUrl: user.imageUrl, 
+                name: user.name, 
                 email: user.email,
-                phone: user.phone ,
                 id: user.id 
             },
         });
     } catch (error) {
-        res.status(500).json({ error: 'Error logging in' });
+        res.status(500).json({ error: 'Error logging in',error });
     }
 };
+
+
+/////////////////////////////////////////////////////////////////////////
+
+
 
 
 module.exports = {
@@ -230,5 +235,5 @@ module.exports = {
     registerChef,
     registerDeliveryBoy,
     registerAdmin,
-    login
+    login,
 };
